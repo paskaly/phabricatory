@@ -1,0 +1,57 @@
+#
+# docker-compose.yaml scheleton
+#
+# user must set <your_basepath> and PHABRICATOR_HOST (e.g. phab.mydomain.com)
+#
+# (c) 2017, paskaly
+#
+
+sd
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    ports:
+      - 33060:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: phabricator
+      MYSQL_PASSWORD: phabricator
+      MYSQL_DATABASE: phabricator
+
+    volumes:
+      - type: bind
+        source: <your_basepath>/data
+        target: /var/lib/mysql
+
+  phabricator:
+    image: paskaly/phabricatory
+    container_name: pha
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    ports:
+      - 80:80
+      - 443:443
+      - 22:22
+
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASS: password
+      PHABRICATOR_HOST: <YOUR_HOST_DOMAIN>
+      PHABRICATOR_REPOSITORY_PATH: /repos
+      PHABRICATOR_STORAGE_TYPE: disk
+      PHABRICATOR_STORAGE_PATH: /files
+
+    volumes:
+      - type: bind
+        source: <your_basepath>/repository
+        target: /repos
+      - type: bind
+        source: <your_basepath>/files
+        target: /files
+      - type: bind
+        source: <your_basepath>/extensions
+        target: /srv/phabricator/phabricator/src/extensions
